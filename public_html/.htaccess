@@ -1,0 +1,9 @@
+#~ Prevent browsing
+Options -Indexes
+
+#~ Default resources
+DirectoryIndex index.php index.html index.htm
+
+#~ Hide all files beginning with dot and end with .inc
+RedirectMatch 404 /\..*$
+RedirectMatch 404 .*\.inc$

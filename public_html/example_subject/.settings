@@ -1,0 +1,6 @@
+title: Example Subject          :: MANDATORY; title to show instead of folder name 
+cdate: 19-09                    :: folder creation time for sorting; 'year-month' or 'year-month-day'
+footer: 2019/2020 - 1st term    :: subject's footer text to show
+colorTxt: pale-blue             :: subject's header/footer text color
+colorBack: blue                 :: subject's header/footer background color
+ignore: folder1;folder2         :: folders (next to lectures) to ignore
