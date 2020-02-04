@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Maybe now GitHub wil show PHP as language instead CSS
+*.php linguist-language=PHP
