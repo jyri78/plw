@@ -55,5 +55,5 @@ public_html
      └─ ...
 ```
 
-1. Selleks, et kursus ilmuks avalehele, tuleb kursuse kausta lisada fail `.settings` (vt. näitekausta `example_subject`) ning soovi korral ka faili `.links`, kuhu võid lisada viited erinevatele allikatele, mida kuvatakse **Eelvaade** lehel.
+1. Selleks, et kursus ilmuks avalehele, tuleb kursuse kausta lisada fail `.settings` (vt. näitekausta `example_subject`) ning soovi korral ka faili `.links`, kuhu võid lisada viited erinevatele allikatele, mida kuvatakse lehel **Eelvaade**.
 2. Loengute lehel saad määrata selle toimumise aega failis `.date`, siis ilmub see nime järele ülaindeksina. Kui soovid teha loengu kaustas oleva PHP-lähtekoodi nähtavaks, lisa fail `.src`, kus võid soovi korral piiritleda alamkaustaga (tühjaks jätmise korral loetakse kõik `*.php` ja `*.inc` failid).

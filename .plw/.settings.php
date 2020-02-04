@@ -8,6 +8,9 @@ define("INFO_YEAR", 0);            // year of admission
 define("INFO_PHONE", '');          // default country code: (+372)
 define("INFO_EMAIL", '');          // e-mail to show
 define("INFO_REQUEST_VALUE", '');  // used in '/?_info=<value>' for extra security
+
+define("SQL_USER", '');            // SQL username
+define("SQL_PWD", '');             // SQL password 
 /* 
 End of MANDATORY part
 */
@@ -63,4 +66,6 @@ define("SETTINGS", array(
     "INFO_PHONE" => INFO_PHONE,
     "INFO_EMAIL" => INFO_EMAIL,
     "INFO_REQUEST_VALUE" => INFO_REQUEST_VALUE,
+    "SQL_USER" => SQL_USER,
+    "SQL_PWD" => SQL_PWD,
 ));
