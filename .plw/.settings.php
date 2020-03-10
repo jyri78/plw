@@ -24,6 +24,9 @@ define("APP_THEME", '');        // 'dark' or 'light'
 // read more about libraries in https://www.w3schools.com/w3css/w3css_color_libraries.asp
 define("APP_COLOR_LIBS", array());  // use only name(s) between 'w3-colors-' and '.css'
 
+// PHP Projects folder (real folder name, name to show), if you need it
+define("PROJECTS_FOLDER", array('', ''));
+
 
 // Think carefully before changing!
 define("SRC_EXT", array('php', 'inc'));
@@ -40,7 +43,7 @@ define("APP_WORDS", array(
         "preview"      => 'Preview',
         "other"        => 'Other folders',
         "back"         => 'Back',
-        "source"       => 'Source',
+        "source"       => 'source',
         "select_file"  => "Select file to see it's source",
     ),
     "et" => array(

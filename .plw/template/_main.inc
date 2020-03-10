@@ -25,7 +25,8 @@ foreach($g_subjects[0] as $c => $s):
         <div class="w3-container">
             <div class="w3-bar-block w3-border w3-round-large">
                 <a class="w3-bar-item w3-button w3-round-large w3-hover-shadow lecture" href="<?=
-PATH_WEB .'?'. $c ?>"><?= APP_WORDS[APP_LANG]['preview'] ?></a>
+PATH_WEB .'?'. str_replace(_PLW_REPLACES['SPC'][0], _PLW_REPLACES['SPC'][1], $c) ?>"><?=
+APP_WORDS[APP_LANG]['preview'] ?></a>
                 <div class="w3-margin-left w3-opacity w3-small" style="border-top:1px solid lightgray">
 
 <?php
@@ -59,7 +60,8 @@ if (sizeof($g_subjects[1])>0):
     foreach($g_subjects[1] as $f):
 ?>
                 <a href="<?= PATH_WEB . $f .'/'
-?>" class="w3-btn w3-round-large w3-<?= $g_theme[1]['btn'] ?> w3-border"><?= $f ?></a>
+?>" class="w3-btn w3-round-large w3-<?= $g_theme[1]['btn']
+?> w3-border" target="_blank"><?= $f ?></a>
 <?php
     endforeach;
 ?>

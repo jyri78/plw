@@ -22,8 +22,13 @@
  *   subject_links($subject)
  *   print_subject_links($subject)
  * 
- * Used in '_src.inc':
+ * Used in '_src.inc' and '_proj.inc':
  *   lecture_files($link)
+ * 
+ * Used in '_proj.inc':
+ *   print_project_files()
+ * 
+ * Used in '_src.inc';
  *   print_lecture_files($subject, $lecture)
  *   highlight_source($file)
  */
@@ -182,18 +187,24 @@ function subjects() {
 
     // Iterates all folders
     foreach (new DirectoryIterator(PATH_MAIN) as $f) {
-        // Allow only folders and if there has settings
-        if ($f->isDot() || !$f->isDir()) continue;
-        // Select hidden folder if allowed
-        if (substr($f->getFileName(),0,1)=='.' && !SHOW_HIDDEN) continue;
+        $fn = $f->getFileName();
 
-        $s = subject_settings($f->getFileName());
+        // Allow only folders and if there have settings files
+        if ($f->isDot() || !$f->isDir()) continue;
+        // If hidden folder not allowed, skip it
+        if (substr($fn,0,1)=='.' && !SHOW_HIDDEN) continue;
+        // Skip project folders (real name and name to show)
+        if (in_array($fn, PROJECTS_FOLDER)) continue;
+        // Skip, if required by user (file .hide)
+        if (file_exists($fn .'/'. _PLW_FILES[4])) continue;
+
+        $s = subject_settings($fn);
 
         if ($s===false) {
-            if (SHOW_OTHER) $fldr[] = $f->getFileName();
+            if (SHOW_OTHER) $fldr[] = $fn;
         }
         else
-            $tmp[$s['cdate'] .'__'. $f->getFileName()] = $s;
+            $tmp[$s['cdate'] .'__'. $fn] = $s;
     }
     sort($fldr);
     krsort($tmp);
@@ -260,6 +271,8 @@ function lectures($subject) {
         if($f->isDot() || !$f->isDir()) continue;
         // If hidden files/folders not allowed, continue in occurrence
         if (substr($f->getFileName(), 0, 1)=='.' && !SHOW_HIDDEN) continue;
+        // If lecture folder contains file '.hide', then will ignore it as required
+        if (file_exists($subject .'/'. $f .'/'. _PLW_FILES[4])) continue;
 
         $ret[] = $f->getFileName();
     }
@@ -275,15 +288,16 @@ function print_lectures($subject, $setting, $target = '') {
     $lec = lectures(PATH_MAIN . $subject);
 
     foreach ($lec as $dir) {
+        // Ignore folder set by settings
+        if (in_array('/'. $dir, $setting['ignore'])) continue;
+
+        // Reads date data, if is set
         $date = file_get_contents(PATH_MAIN . $subject .'/'. $dir .'/'. _PLW_FILES[2]);
 
         $sDate = $date ? ' <sup class="w3-text-'. $setting["colorBack"] .'">('
                 . $date .')</sup>' : '';
 
         $src = get_subfolder(PATH_MAIN . $subject .'/'. $dir);
-        
-        // Ignore folder set by settings
-        if (in_array('/'. $dir, $setting['ignore'])) continue;
 
         // If sources page allowed and not in subject page,
         // then add two links (lecture folder and sources page)
@@ -292,12 +306,13 @@ function print_lectures($subject, $setting, $target = '') {
 <?= $link ?>w3-border-right lecture lecture_s" href="<?=
         PATH_WEB . $subject .'/' . $dir ?>/"> <?= $dir . $sDate ?></a>
 <?= $link ?>w3-border-left w3-center code" href="<?= PATH_WEB .'?src'
-        . _PLW_REPLACES['SLS'] . $subject . _PLW_REPLACES['SLS'] . $dir ?>"></a>
+        . _PLW_REPLACES['SLS'] . str_replace(_PLW_REPLACES['SPC'][0], _PLW_REPLACES['SPC'][1],
+                                             $subject . _PLW_REPLACES['SLS'] . $dir) ?>"></a>
 <?php
         else:
 ?>
 <?= $link ?>lecture" href="<?= PATH_WEB . $subject .'/' . $dir ?>/"<?=
-        $target ?>> <?= $dir . $sDate ?></a>
+        str_replace(_PLW_REPLACES['SPC'][0], _PLW_REPLACES['SPC'][1], $target) ?>> <?= $dir . $sDate ?></a>
 <?php
         endif;
     }
@@ -357,7 +372,7 @@ function print_subject_links($subject) {
 // ---------------------------------------------------------------------
 //~ Returns Lectures PHP source files
 // ---------------------------------------------------------------------
-function lecture_files($link) {
+function lecture_files($link, $proj = FALSE) {
     $ret = array();
 
     // Iterates recursively Lecture folder and subfolders
@@ -373,7 +388,7 @@ function lecture_files($link) {
         // Depending on settings, ignores hidden files or not
         if (!SHOW_HIDDEN && substr($fn,0,1)=='.') continue;
 
-        if ($f->isDir()) {
+        if ($f->isDir() && !$proj) {
             $a = lecture_files($link .'/'. $fn);
             if(sizeof($a) > 0) $ret['d_'. $fn] = $a;
         }
@@ -384,6 +399,29 @@ function lecture_files($link) {
     ksort($ret);
     return $ret;
 }
+
+
+// ---------------------------------------------------------------------
+//~ Prints out Project files (PHP)
+// ---------------------------------------------------------------------
+function print_project_files() {
+    global $g_proj;
+    $link1 = '<a class="w3-bar-item w3-button w3-round-large w3-hover-shadow';
+    $link2 = ' src" href="';
+
+    // Ignore subdirectories (can be used for includes in php file)
+    $files = lecture_files(PATH_MAIN . PROJECTS_FOLDER[0], true);
+
+    foreach ($files as $file) {
+        $f = substr($file, 0, -4);
+
+        echo $link1 . ($f == $g_proj
+            ? ' w3-light-gray w3-border w3-border-light-grey w3-hover-border-blue-grey'
+            : '') . $link2 . PATH_WEB .'?'. PROJECTS_FOLDER[1] .'='. $f .'">'
+            . $f .'</a>';
+    }
+}
+
 
 // ---------------------------------------------------------------------
 //~ Prints out Lecture files
@@ -418,9 +456,10 @@ _print_files($fldr, $src . $f . _PLW_REPLACES['DS'][1], $hlp . $f .'/');
 ?>
 <?= $link1 . ($g_src == SUBJECT .'/'. LECTURE . $g_subfldr .'/'. $hlp . $fldr
         ? ' w3-light-gray w3-border w3-border-light-grey w3-hover-border-blue-grey' : '')
-        . $link2 . PATH_WEB .'?src'. _PLW_REPLACES['SLS'] . SUBJECT . _PLW_REPLACES['SLS']
-        . LECTURE . _PLW_REPLACES['LFS']
-        . str_replace(_PLW_REPLACES['DOT'][0], _PLW_REPLACES['DOT'][1], $src . $fldr)
+        . $link2 . PATH_WEB .'?src'. _PLW_REPLACES['SLS']
+        . str_replace(_PLW_REPLACES['SPC'][0], _PLW_REPLACES['SPC'][1],
+                      SUBJECT . _PLW_REPLACES['SLS'] . LECTURE . _PLW_REPLACES['LFS']
+                      . str_replace(_PLW_REPLACES['DOT'][0], _PLW_REPLACES['DOT'][1], $src . $fldr))
         ?>"> <?= $fldr ?></a>
 <?php
         endif;
