@@ -311,8 +311,8 @@ function print_lectures($subject, $setting, $target = '') {
 <?php
         else:
 ?>
-<?= $link ?>lecture" href="<?= PATH_WEB . $subject .'/' . $dir ?>/"<?=
-        str_replace(_PLW_REPLACES['SPC'][0], _PLW_REPLACES['SPC'][1], $target) ?>> <?= $dir . $sDate ?></a>
+<?= $link ?>lecture" href="<?= PATH_WEB . str_replace(_PLW_REPLACES['SPC'][0], _PLW_REPLACES['SPC'][1]
+        , $subject .'/' . $dir) ?>/"<?= $target ?>> <?= $dir . $sDate ?></a>
 <?php
         endif;
     }
