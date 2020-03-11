@@ -418,7 +418,7 @@ function print_project_files() {
         echo $link1 . ($f == $g_proj
             ? ' w3-light-gray w3-border w3-border-light-grey w3-hover-border-blue-grey'
             : '') . $link2 . PATH_WEB .'?'. PROJECTS_FOLDER[1] .'='. $f .'">'
-            . $f .'</a>';
+            . $f .'</a>'. "\n";
     }
 }
 
