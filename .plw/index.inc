@@ -7,6 +7,18 @@ foreach (SETTINGS as $k => $v)
     if (!$v)
         die("SETTINGS not set yet 🤔");
 
+// Projects POST (doesn't need any functions included below)
+if (isset($_GET[PROJECTS_FOLDER[1]]) && !empty($_GET[PROJECTS_FOLDER[1]]) && !empty($_POST)) {
+    $p = filter_input(INPUT_GET, PROJECTS_FOLDER[1], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
+    $f = PATH_MAIN . PROJECTS_FOLDER[0] .'/'. $p .'.php';
+    if (file_exists($f)) {
+        include $f;
+        exit;
+    } else {
+        header("Location:". PATH_WEB);  // disallow unknown projects
+    }
+}
+
 (@include PATH_INC ."functions.php") or die(ERROR_MSG);
 
 
@@ -14,7 +26,7 @@ foreach (SETTINGS as $k => $v)
 //~ In-App settings, do not change
 // ---------------------------------------------------------------------
 define("_PLW_NAME", 'Programming Lectures Web');
-define("_PLW_VER", '1.0');
+define("_PLW_VER", '1.1');
 
 
 define("_PLW_NUMBERS", array("+" => '➕',
@@ -23,7 +35,7 @@ define("_PLW_NUMBERS", array("+" => '➕',
 ));
 
 define("_PLW_FILES", array(
-    '.settings', '.links', '.date', '.src',  // do not change order!
+    '.settings', '.links', '.date', '.src', '.hide',  // do not change order!
     '.settings.php',
 ));
 
@@ -33,6 +45,7 @@ define("_PLW_REPLACES", array(
 
     'DS'  => array('/', '--'),  // directory separator and replacement
     'DOT' => array('.', '~'),   // dot and replacement (some browsers tend to replace with underscore)
+    'SPC' => array(' ', '~~'),   // space and replacement
 ));
 
 
@@ -50,6 +63,18 @@ define("_PLW_PG_SETTINGS", array(
         't_p'       => 'class="w3-text-'. $g_theme[1]['gray'] .'-gray" style="border-top:1px solid gray"',
         'hText'     => INFO_COLLEGE,
         'footer_mw' => ';max-width:800px',
+    ),
+    'proj' => array(
+        't_html'    => '',
+        'title1'    => APP_WORDS[APP_LANG]['projects'],
+        'title2'    => INFO_NAME,
+        't_body'    => ' class="w3-'. $g_theme[1]['body'] .'"',
+        'hColor'    => $g_theme[1]['header'],
+        't_h1'      => ' class="w3-'. $g_theme[1]['h1'] .'" style="text-shadow:1px 1px 0 #444"',
+        'hTitle'    => APP_WORDS[APP_LANG]['projects'],
+        't_p'       => 'class="w3-text-'. $g_theme[1]['gray'] .'-gray" style="border-top:1px solid gray"',
+        'hText'     => INFO_NAME .' – '. INFO_COURSE,
+        'footer_mw' => '',
     ),
     'subject' => array(
         't_html'    => ' style="height:100%"',
@@ -76,6 +101,29 @@ define("_PLW_PG_SETTINGS", array(
         'footer_mw' => '',
     ),
 ));
+
+
+// ---------------------------------------------------------------------
+//~ JavaScript
+// ---------------------------------------------------------------------
+if (isset($_GET["js"])) {
+    header("Content-type: text/javascript");
+    echo file_get_contents(PATH_INC . 'js/w3.min.js');
+    echo "\n\n";
+    echo file_get_contents(PATH_INC . 'js/plw.min.js');
+
+    // Include also projects JavaScript (same name in folder 'js')
+    if (isset($_GET[PROJECTS_FOLDER[1]])) {
+        $p = filter_input(INPUT_GET, PROJECTS_FOLDER[1], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
+        $js = PATH_MAIN . PROJECTS_FOLDER[0] .'/js/'. $p .'.js';
+
+        if (file_exists($js)) {
+            echo "\n\n/* Project: ". $p .".php */\n";
+            echo file_get_contents($js);
+        }
+    }
+    exit;
+}
 
 
 // ---------------------------------------------------------------------
@@ -140,52 +188,67 @@ if (sizeof($_GET) > 1) {
     exit;
 }
 if (sizeof($_GET) == 1) {
-    $k = array_keys($_GET)[0];
-    $__s = '';
+    $k = str_replace(_PLW_REPLACES['SPC'][1], _PLW_REPLACES['SPC'][0], array_keys($_GET)[0]);
 
-    foreach ($g_subjects[0] as $subj => $s) {
-        // If Subject folder is requested ...
-        if (isset($_GET[$subj])) {
-            $g_inc = '_subject.inc';
-            $__s = $subj;
-            break;
+    if ($k == PROJECTS_FOLDER[1]) {
+        $g_inc = '_proj.inc';
+        $g_proj = filter_input(INPUT_GET, $k, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
+
+        // If poject file does not exist, reload page
+        if ($g_proj && !file_exists(PATH_MAIN . PROJECTS_FOLDER[0] .'/'. $g_proj .'.php')) {
+            header("Location:". PATH_WEB .'?'. PROJECTS_FOLDER[1]);
+            exit();
         }
-        // ... or preview of source files
-        elseif (strpos($k, 'src'. _PLW_REPLACES['SLS'] . $subj) !== false) {
-            $t = explode(_PLW_REPLACES['LFS'], $k);
-            $l = explode(_PLW_REPLACES['SLS'], $t[0]);
 
-            // Allow to preview only allowed Lecture files
-            if (file_exists(PATH_MAIN . $subj .'/'. $l[2] .'/'. _PLW_FILES[3])) {
-                $g_inc = '_src.inc';
-                $g_subfldr = get_subfolder($l[1] .'/'. $l[2]);  // TODO: Accept several subfolders
+        define("SUBJECT", '');  // for project page design (header)
+    }
+    else {
+        $__s = '';
 
-                // If source file is selected
-                if (sizeof($t) > 1) {
-                    $g_src = $l[1] .'/'. $l[2] . $g_subfldr .'/' . str_replace(
-                            _PLW_REPLACES['DOT'][1], _PLW_REPLACES['DOT'][0]
-                            , str_replace(_PLW_REPLACES['DS'][1], _PLW_REPLACES['DS'][0], $t[1])
-                        );
-                }
-
+        foreach ($g_subjects[0] as $subj => $s) {
+            // If Subject folder is requested ...
+            if (isset($_GET[str_replace(_PLW_REPLACES['SPC'][0], _PLW_REPLACES['SPC'][1], $subj)])) {
+                $g_inc = '_subject.inc';
                 $__s = $subj;
-                define("LECTURE", $l[2]);
                 break;
             }
+            // ... or preview of source files
+            elseif (strpos($k, 'src'. _PLW_REPLACES['SLS'] . $subj) !== false) {
+                $t = explode(_PLW_REPLACES['LFS'], $k);
+                $l = explode(_PLW_REPLACES['SLS'], $t[0]);
+
+                // Allow to preview only allowed Lecture files
+                if (file_exists(PATH_MAIN . $subj .'/'. $l[2] .'/'. _PLW_FILES[3])) {
+                    $g_inc = '_src.inc';
+                    $g_subfldr = get_subfolder($l[1] .'/'. $l[2]);  // TODO: Accept several subfolders
+
+                    // If source file is selected
+                    if (sizeof($t) > 1) {
+                        $g_src = $l[1] .'/'. $l[2] . $g_subfldr .'/' . str_replace(
+                                _PLW_REPLACES['DOT'][1], _PLW_REPLACES['DOT'][0]
+                                , str_replace(_PLW_REPLACES['DS'][1], _PLW_REPLACES['DS'][0], $t[1])
+                            );
+                    }
+
+                    $__s = $subj;
+                    define("LECTURE", $l[2]);
+                    break;
+                }
+            }
         }
+
+        // If no valid page, then reload
+        if (!$__s) {
+            header('Location: '.  PATH_WEB);
+
+            // If by some reason header won't work
+            echo 'Unknown QUERY "'. $k .'"... 🤔';
+            exit;
+        }
+
+        define("SUBJECT", $__s);
+        unset($__s);
     }
-
-    // If no valid page, then reload
-    if (!$__s) {
-        header('Location: '.  PATH_WEB);
-
-        // If by some reason header won't work
-        echo 'Unknown QUERY "'. $k .'"... 🤔';
-        exit;
-    }
-
-    define("SUBJECT", $__s);
-    unset($__s);
 }
 
 

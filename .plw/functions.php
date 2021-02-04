@@ -5,7 +5,7 @@
  * 
  * Main functions:
  *   get_theme()
- *   get_phone($subject)
+ *   get_phone()
  *   subject_settings($subject)
  *   subjects()
  *   get_subfolder($link) 
@@ -103,7 +103,7 @@ function get_theme() {
 // ---------------------------------------------------------------------
 //~ Returns Phone Number
 // ---------------------------------------------------------------------
-function get_phone($subject) {
+function get_phone() {
     $ph = str_split(INFO_PHONE);
     $r1 = '';
     $r2 = '';
